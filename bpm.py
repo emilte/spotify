@@ -1,54 +1,69 @@
-import spotipy
-from spotipy.oauth2 import SpotifyClientCredentials
-
-from mytypes.types import PlaylistObject
+from mytypes.types import AudioFeaturesObject, PlaylistObject
+from spotipy_client import SpotipyClient
 
 url = "https://api.spotify.com"
 
 
 class Scope:
-    a = 'playlist-modify-public'
-    b = 'playlist-modify-private'
+    playlist_modify_public = 'playlist-modify-public'
+    playlist_modify_private = 'playlist-modify-private'
 
 
-auth_manager = SpotifyClientCredentials()
-sp = spotipy.Spotify(auth_manager=auth_manager)
+def scope_builder(*scopes):
+    return ' '.join(scopes)
 
-slow_wcs_playlist = 'https://open.spotify.com/playlist/0w0YxOMjvKUFS215VPIK6X?si=af0f0880708744c8'
-test = 'https://open.spotify.com/playlist/0zTGrbhMKJcOnCnAn55vGZ?si=34295a468ad74e65'
 
-aa = sp.playlist(playlist_id=test)  # https://developer.spotify.com/documentation/web-api/reference/get-playlist
-# bb = sp.playlist_items(playlist_id=test)
-# cc = sp.playlist_tracks(playlist_id=test)
+def bpm_sorter(audio_feature: AudioFeaturesObject, threshold: int | None = None) -> float:
+    bpm = audio_feature.tempo
+    if threshold is not None and audio_feature.tempo >= threshold:
+        bpm /= 2
+    return bpm
 
-# print(aa)
-# print(type(aa))
-# print(aa.keys())
 
-print(aa)
-# print(type(bb))
-# print(bb.keys())
-# print(bb['items'])
+def duplicate_playlist_sorted_by_bpm(
+    client: SpotipyClient,
+    playlist: str,
+    name: str = '',
+    threshold: int | None = None,
+    dry_run: bool | int = False,
+):
 
-# print(c)
-# print(type(cc))
-# print(cc.keys())
-# print()
-# print(cc.items())
-# print()
-# print(cc.keys())
-# for k, v in cc.items():
-#     print(k, v)
+    playlist: PlaylistObject = client.playlist(playlist_id=USING_PL)
 
-# for k, v in cc['items']:
-#     print(k, v)
-pp = PlaylistObject(**aa)
-# print(pp.next)
-# print(type(pp))
-# print(pp)
-# print(type(pp.items[0].track))
-# print(pp.items[0].track)
-# print(pp.items[0].track.artists[0].name)
-# print(type(pp.items[0].track.artists[0].name))
-# print(pp.items[0].added_at)
-# print(cc['items'][0].keys())
+    songs_by_uris = {item.track.uri: item.track for item in playlist.tracks.items}
+
+    audio_features: list[AudioFeaturesObject] = client.audio_features(tracks=songs_by_uris.keys())
+
+    sorted_audio_features = sorted(
+        audio_features,
+        key=lambda s: bpm_sorter(audio_feature=s, threshold=threshold),
+    )
+    sorted_audio_features_uris = [item.uri for item in sorted_audio_features]
+
+    for i in sorted_audio_features:
+        print(i.tempo, songs_by_uris[i.uri].name)
+
+    plname = name or f'{playlist.name} - by bpm'
+    if not dry_run:
+        new_pl: PlaylistObject = client.user_playlist_create(user=emil, name=plname)
+        client.playlist_add_items(playlist_id=new_pl.uri, items=sorted_audio_features_uris)
+    print(f'Created playlist: {plname}')
+
+
+if __name__ == '__main__':
+    scopes = scope_builder(Scope.playlist_modify_private, Scope.playlist_modify_public)
+
+    slow_wcs_playlist = 'https://open.spotify.com/playlist/0w0YxOMjvKUFS215VPIK6X?si=af0f0880708744c8'
+    inputpl = 'https://open.spotify.com/playlist/5ISmAZvdFQob5nEZgH9ufI?si=4ee7af478b0b4a38'
+    test = 'https://open.spotify.com/playlist/0zTGrbhMKJcOnCnAn55vGZ?si=34295a468ad74e65'
+    fast_wcs = 'https://open.spotify.com/playlist/5lTsNph8TgIrTR7znoGfGk?si=49125ed39fe7483e'
+    emil = 'emiltelstad'
+
+    sp = SpotipyClient(username=emil, scope=scopes)
+
+    USING_PL = fast_wcs
+    THRESHOLD = None
+    THRESHOLD = 170
+    DRY_RUN = 0
+
+    duplicate_playlist_sorted_by_bpm(client=sp, playlist=USING_PL, threshold=THRESHOLD, dry_run=DRY_RUN)
