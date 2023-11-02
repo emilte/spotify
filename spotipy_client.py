@@ -1,9 +1,9 @@
 from typing import Any, Iterable
 import spotipy
 from spotipy.oauth2 import SpotifyClientCredentials
-from mytypes.response import PagedSimplifiedPlaylistObject
+from mytypes.response import PagedSimplifiedPlaylistObject, SetOfAudioFeaturesObject
 
-from mytypes.types import ImageObject, PlaylistObject
+from mytypes.types import AudioFeaturesObject, ImageObject, PlaylistObject
 
 
 class SpotipyClient:
@@ -14,34 +14,14 @@ class SpotipyClient:
     SPOTIPY_REDIRECT_URI=...
     """
 
-    def __init__(self) -> None:
-        self.auth_manager = SpotifyClientCredentials()
-        self.sp = spotipy.Spotify(auth_manager=self.auth_manager)
-        self.sp.play
-
-    def playlist(
-        self,
-        playlist_id: str,
-        fields: Iterable[str] = None,
-        market: str | None = None,
-        additional_types: Iterable[str] = ("track", ),
-    ) -> PlaylistObject:
-        """ Gets playlist by id.
-
-            Parameters:
-                - playlist - the id of the playlist
-                - fields - which fields to return
-                - market - An ISO 3166-1 alpha-2 country code or the
-                           string from_token.
-                - additional_types - list of item types to return.
-                                     valid types are: track and episode
-        """
-        return self.sp.playlist(
-            playlist_id=playlist_id,
-            fields=fields,
-            market=market,
-            additional_types=additional_types,
-        )
+    def __init__(self, username: str | None = None, scope: str | None = None) -> None:
+        self.username = username
+        if username:
+            token = spotipy.util.prompt_for_user_token(username=username, scope=scope)
+            self.sp = spotipy.Spotify(auth=token)
+        else:
+            auth_manager = SpotifyClientCredentials()
+            self.sp = spotipy.Spotify(auth_manager=auth_manager)
 
     def track(
         self,
@@ -360,11 +340,13 @@ class SpotipyClient:
     def playlist(
         self,
         playlist_id: str,
-        fields=None,
+        fields: Iterable[str] | None = None,
         market: str | None = None,
         additional_types: Iterable[str] = ("track", ),
-    ):
+    ) -> PlaylistObject:
         """ Gets playlist by id.
+        
+        https://developer.spotify.com/documentation/web-api/reference/get-playlist
 
             Parameters:
                 - playlist - the id of the playlist
@@ -374,11 +356,13 @@ class SpotipyClient:
                 - additional_types - list of item types to return.
                                      valid types are: track and episode
         """
-        return self.sp.playlist(
-            playlist_id=playlist_id,
-            fields=fields,
-            market=market,
-            additional_types=additional_types,
+        return PlaylistObject(
+            **self.sp.playlist(
+                playlist_id=playlist_id,
+                fields=fields,
+                market=market,
+                additional_types=additional_types,
+            )
         )
 
     def playlist_items(
@@ -465,8 +449,10 @@ class SpotipyClient:
         public: bool = True,
         collaborative: bool = False,
         description: str = "",
-    ):
+    ) -> PlaylistObject:
         """ Creates a playlist for a user
+        
+        https://developer.spotify.com/documentation/web-api/reference/create-playlist
 
             Parameters:
                 - user - the id of the user
@@ -475,12 +461,14 @@ class SpotipyClient:
                 - collaborative - is the created playlist collaborative
                 - description - the description of the playlist
         """
-        return self.sp.user_playlist_create(
-            user=user,
-            name=name,
-            public=public,
-            collaborative=collaborative,
-            description=description,
+        return PlaylistObject(
+            **self.sp.user_playlist_create(
+                user=user,
+                name=name,
+                public=public,
+                collaborative=collaborative,
+                description=description,
+            )
         )
 
     def user_playlist_add_tracks(
@@ -515,31 +503,7 @@ class SpotipyClient:
         """
         return self.sp.user_playlist_replace_tracks()
 
-    def user_playlist_reorder_tracks(
-        self,
-        user: str,
-        playlist_id: str,
-        range_start,
-        insert_before,
-        range_length=1,
-        snapshot_id: str | None = None,
-    ):
-        """ Reorder tracks in a playlist from a user
-
-            Parameters:
-                - user - the id of the user
-                - playlist_id - the id of the playlist
-                - range_start - the position of the first track to be reordered
-                - range_length - optional the number of tracks to be reordered
-                                 (default: 1)
-                - insert_before - the position where the tracks should be
-                                  inserted
-                - snapshot_id - optional playlist's snapshot ID
-        """
-        return self.sp.user_playlist_reorder_tracks()
-
     def playlist_change_details(
-        self,
         playlist_id: str,
         name=None,
         public=None,
@@ -574,17 +538,19 @@ class SpotipyClient:
     def playlist_add_items(
         self,
         playlist_id: str,
-        items,
-        position=None,
-    ):
+        items: Iterable[str],
+        position: int | None = None,
+    ) -> str:
         """ Adds tracks/episodes to a playlist
+        
+        https://developer.spotify.com/documentation/web-api/reference/add-tracks-to-playlist
 
             Parameters:
                 - playlist_id - the id of the playlist
                 - items - a list of track/episode URIs or URLs
                 - position - the position to add the tracks
-        """
-        return self.sp.playlist_add_items()
+        """#
+        return self.sp.playlist_add_items(playlist_id=playlist_id, items=items, position=position)
 
     def playlist_replace_items(
         self,
@@ -939,13 +905,16 @@ class SpotipyClient:
 
     def audio_features(
         self,
-        tracks=[],
-    ):
+        tracks: Iterable[str] = [],
+    ) -> list[AudioFeaturesObject]:
         """ Get audio features for one or multiple tracks based upon their Spotify IDs
+        
+        https://developer.spotify.com/documentation/web-api/reference/get-several-audio-features
+        
             Parameters:
                 - tracks - a list of track URIs, URLs or IDs, maximum: 100 ids
         """
-        return self.sp.audio_features(tracks=tracks)
+        return [AudioFeaturesObject(**data) for data in self.sp.audio_features(tracks=tracks)]
 
     def devices(self, ):
         """ Get a list of user's available devices."""
