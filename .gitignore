@@ -2,7 +2,16 @@
 .venv/
 venv/
 .history/
+__pycache__/
 
 
 .env
 .cache
+
+
+### VisualStudioCode ###
+.vscode/**/*
+!.vscode/extensions.json
+!.vscode/extensions.recommended.json
+!.vscode/launch.json
+!.vscode/README.md
