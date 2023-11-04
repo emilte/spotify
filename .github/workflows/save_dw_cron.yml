@@ -1,4 +1,4 @@
-name: Real Cron Job
+name: Duplicate Discover Weekly playlists
 
 on:
   workflow_dispatch:
@@ -27,7 +27,7 @@ jobs:
       - name: Setup python
         uses: actions/setup-python@v4
         with:
-          python-version: "3.11"
+          python-version: "3.11.5"
 
       - name: Install dependencies
         run: |
@@ -38,5 +38,5 @@ jobs:
           python -m pip install pipenv
           python -m pipenv install --dev --deploy --python $PY
 
-      - name: Duplicate Discover Weekly playlists
+      - name: Run python script to duplicate Discover Weekly playlists
         run: python -m pipenv run python discover_weekly.py
