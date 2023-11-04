@@ -1,8 +1,8 @@
 import os
 from datetime import datetime
 
+from utils import Scope
 from spotipy_client import SpotipyClient
-from utils import scope_builder, Scope
 
 ENV_PREFIX = 'DW_'
 L = len(ENV_PREFIX)

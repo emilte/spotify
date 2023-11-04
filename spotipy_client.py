@@ -1,6 +1,7 @@
 from typing import Any, Iterable, Literal
 
 import spotipy
+from spotipy.exceptions import SpotifyException
 from spotipy.oauth2 import SpotifyClientCredentials
 
 from utils import scope_builder
@@ -687,13 +688,21 @@ class SpotipyClient:
         """
         return self.sp.playlist_is_following(playlist_id=playlist_id, user_ids=user_ids)
 
-    def me(self, ):
+    def me(self):
+        """ Get detailed profile information about the current user.
+            An alias for the 'current_user' method.
+        """
         return self.sp.me()
 
-    def current_user(self, ):
+    def current_user(self):
+        """ Get detailed profile information about the current user.
+            An alias for the 'me' method.
+        """
         return self.sp.current_user()
 
-    def current_user_playing_track(self, ):
+    def current_user_playing_track(self):
+        """ Get information about the current users currently playing track.
+        """
         return self.sp.current_user_playing_track()
 
     def current_user_saved_albums(
@@ -737,7 +746,7 @@ class SpotipyClient:
             Parameters:
                 - albums - a list of album URIs, URLs or IDs
         """
-        return self.sp.current_user_saved_albums_contains()
+        return self.sp.current_user_saved_albums_contains(albums=albums)
 
     def current_user_saved_tracks(
         self,
@@ -760,19 +769,37 @@ class SpotipyClient:
         self,
         tracks=None,
     ):
-        return self.sp.current_user_saved_tracks_add()
+        """ Add one or more tracks to the current user's
+            "Your Music" library.
+
+            Parameters:
+                - tracks - a list of track URIs, URLs or IDs
+        """
+        return self.sp.current_user_saved_tracks_add(tracks=tracks)
 
     def current_user_saved_tracks_delete(
         self,
         tracks=None,
     ):
-        return self.sp.current_user_saved_tracks_delete()
+        """ Remove one or more tracks from the current user's
+            "Your Music" library.
+
+            Parameters:
+                - tracks - a list of track URIs, URLs or IDs
+        """
+        return self.sp.current_user_saved_tracks_delete(tracks=tracks)
 
     def current_user_saved_tracks_contains(
         self,
         tracks=None,
     ):
-        return self.sp.current_user_saved_tracks_contains()
+        """ Check if one or more tracks is already saved in
+            the current Spotify user’s “Your Music” library.
+
+            Parameters:
+                - tracks - a list of track URIs, URLs or IDs
+        """
+        return self.sp.current_user_saved_tracks_contains(tracks=tracks)
 
     def current_user_saved_episodes(
         self,
@@ -780,13 +807,22 @@ class SpotipyClient:
         offset: int = 0,
         market: str | None = None,
     ):
-        return self.sp.current_user_saved_episodes()
+        """ Gets a list of the episodes saved in the current authorized user's
+            "Your Music" library
+
+            Parameters:
+                - limit - the number of episodes to return
+                - offset - the index of the first episode to return
+                - market - an ISO 3166-1 alpha-2 country code
+
+        """
+        return self.sp.current_user_saved_episodes(limit=limit, offset=offset, market=market)
 
     def current_user_saved_episodes_add(
         self,
         episodes=None,
     ):
-        return self.sp.current_user_saved_episodes_add()
+        return self.sp.current_user_saved_episodes_add(episodes=episodes)
 
     def current_user_saved_episodes_delete(
         self,
@@ -1071,11 +1107,39 @@ class SpotipyClient:
         """
         return self.sp.pause_playback(device_id=device_id)
 
+    def custom_toggle_playback(
+        self,
+        force: Literal['start'] | Literal['pause'] | None = None,
+        *args,
+        **kwargs,
+    ) -> bool:
+        """Returns is_playing"""
+
+        if force == 'start' or force is None:
+            try:
+                self.sp.start_playback(*args, **kwargs)
+                return True
+            except SpotifyException:
+                if force == 'start':
+                    return True
+
+        if force == 'pause' or force is None:
+            try:
+                self.sp.pause_playback(*args, **kwargs)
+                return False
+            except SpotifyException:
+                if force == 'pause':
+                    return False
+
+        raise Exception('Unknown error. Maybe network issues?')
+
     def next_track(
         self,
         device_id: str | None = None,
     ):
         """ Skip user's playback to next track.
+        
+        https://developer.spotify.com/documentation/web-api/reference/skip-users-playback-to-next-track
 
             Parameters:
                 - device_id - device target for playback
