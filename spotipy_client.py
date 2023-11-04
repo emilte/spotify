@@ -1,9 +1,9 @@
-from typing import Any, Iterable
+from typing import Any, Iterable, Literal
 import spotipy
 from spotipy.oauth2 import SpotifyClientCredentials
-from mytypes.response import PagedSimplifiedPlaylistObject, SetOfAudioFeaturesObject
+from mytypes.response import PagedSimplifiedPlaylistObject
 
-from mytypes.types import AudioFeaturesObject, ImageObject, PlaylistObject
+from mytypes.types import AudioFeaturesObject, ImageObject, PlaybackState, PlaylistObject
 
 
 class SpotipyClient:
@@ -74,9 +74,9 @@ class SpotipyClient:
     def artist_albums(
         self,
         artist_id: str,
-        album_type=None,
-        country=None,
-        limit=20,
+        album_type: str | None = None,
+        country: str | None = None,
+        limit: int = 20,
         offset: int = 0,
     ):
         """ Get Spotify catalog information about an artist's albums
@@ -100,7 +100,7 @@ class SpotipyClient:
     def artist_top_tracks(
         self,
         artist_id: str,
-        country="US",
+        country: str = "US",
     ):
         """ Get Spotify catalog information about an artist's top 10 tracks
             by country.
@@ -504,6 +504,7 @@ class SpotipyClient:
         return self.sp.user_playlist_replace_tracks()
 
     def playlist_change_details(
+        self,
         playlist_id: str,
         name=None,
         public=None,
@@ -521,7 +522,13 @@ class SpotipyClient:
                 - description - optional description of the playlist
         """
 
-        return self.sp.playlist_change_details()
+        return self.sp.playlist_change_details(
+            playlist_id=playlist_id,
+            name=name,
+            public=public,
+            collaborative=collaborative,
+            description=description,
+        )
 
     def current_user_unfollow_playlist(
         self,
@@ -533,7 +540,7 @@ class SpotipyClient:
             Parameters:
                 - name - the name of the playlist
         """
-        return self.sp.current_user_unfollow_playlist()
+        return self.sp.current_user_unfollow_playlist(playlist_id=playlist_id)
 
     def playlist_add_items(
         self,
@@ -563,14 +570,14 @@ class SpotipyClient:
                 - playlist_id - the id of the playlist
                 - items - list of track/episode ids to comprise playlist
         """
-        return self.sp.playlist_replace_items()
+        return self.sp.playlist_replace_items(playlist_id=playlist_id, items=items)
 
     def playlist_reorder_items(
         self,
         playlist_id: str,
-        range_start,
-        insert_before,
-        range_length=1,
+        range_start: int,
+        insert_before: int,
+        range_length: int = 1,
         snapshot_id: str | None = None,
     ):
         """ Reorder tracks in a playlist
@@ -584,12 +591,18 @@ class SpotipyClient:
                                   inserted
                 - snapshot_id - optional playlist's snapshot ID
         """
-        return self.sp.playlist_reorder_items()
+        return self.sp.playlist_reorder_items(
+            playlist_id=playlist_id,
+            range_start=range_start,
+            insert_before=insert_before,
+            range_length=range_length,
+            snapshot_id=snapshot_id,
+        )
 
     def playlist_remove_all_occurrences_of_items(
         self,
         playlist_id: str,
-        items,
+        items: Iterable[str],
         snapshot_id: str | None = None,
     ):
         """ Removes all occurrences of the given tracks/episodes from the given playlist
@@ -601,12 +614,16 @@ class SpotipyClient:
 
         """
 
-        return self.sp.playlist_remove_all_occurrences_of_items()
+        return self.sp.playlist_remove_all_occurrences_of_items(
+            playlist_id=playlist_id,
+            items=items,
+            snapshot_id=snapshot_id,
+        )
 
     def playlist_remove_specific_occurrences_of_items(
         self,
         playlist_id: str,
-        items,
+        items: dict[Literal['uri'], Any],
         snapshot_id: str | None = None,
     ):
         """ Removes all occurrences of the given tracks from the given playlist
@@ -620,7 +637,11 @@ class SpotipyClient:
                         { "uri":"1301WleyT98MSxVHPZCA6M", "positions":[7] } ]
                 - snapshot_id - optional id of the playlist snapshot
         """
-        return self.sp.playlist_remove_specific_occurrences_of_items()
+        return self.sp.playlist_remove_specific_occurrences_of_items(
+            playlist_id=playlist_id,
+            items=items,
+            snapshot_id=snapshot_id,
+        )
 
     def current_user_follow_playlist(
         self,
@@ -633,12 +654,12 @@ class SpotipyClient:
             - playlist_id - the id of the playlist
 
         """
-        return self.sp.current_user_follow_playlist()
+        return self.sp.current_user_follow_playlist(playlist_id=playlist_id)
 
     def playlist_is_following(
         self,
         playlist_id: str,
-        user_ids,
+        user_ids: Iterable[str],
     ):
         """
         Check to see if the given users are following the given playlist
@@ -649,7 +670,7 @@ class SpotipyClient:
                 if they follow the playlist. Maximum: 5 ids.
 
         """
-        return self.sp.playlist_is_following()
+        return self.sp.playlist_is_following(playlist_id=playlist_id, user_ids=user_ids)
 
     def me(self, ):
         return self.sp.me()
@@ -662,37 +683,63 @@ class SpotipyClient:
 
     def current_user_saved_albums(
         self,
-        limit=20,
+        limit: int = 20,
         offset: int = 0,
         market: str | None = None,
     ):
-        return self.sp.current_user_saved_albums()
+        return self.sp.current_user_saved_albums(limit=limit, offset=offset, market=market)
 
     def current_user_saved_albums_add(
         self,
-        albums=[],
+        albums: list[str] = [],
     ):
-        return self.sp.current_user_saved_albums_add()
+        """ Add one or more albums to the current user's
+            "Your Music" library.
+            Parameters:
+                - albums - a list of album URIs, URLs or IDs
+        """
+        return self.sp.current_user_saved_albums_add(albums=albums)
 
     def current_user_saved_albums_delete(
         self,
-        albums=[],
+        albums: list[str] = [],
     ):
-        return self.sp.current_user_saved_albums_delete()
+        """ Remove one or more albums from the current user's
+            "Your Music" library.
+
+            Parameters:
+                - albums - a list of album URIs, URLs or IDs
+        """
+        return self.sp.current_user_saved_albums_delete(albums=albums)
 
     def current_user_saved_albums_contains(
         self,
-        albums=[],
+        albums: list[str] = [],
     ):
+        """ Check if one or more albums is already saved in
+            the current Spotify user's “Your Music” library.
+
+            Parameters:
+                - albums - a list of album URIs, URLs or IDs
+        """
         return self.sp.current_user_saved_albums_contains()
 
     def current_user_saved_tracks(
         self,
-        limit=20,
+        limit: int = 20,
         offset: int = 0,
         market: str | None = None,
     ):
-        return self.sp.current_user_saved_tracks()
+        """ Gets a list of the tracks saved in the current authorized user's
+            "Your Music" library
+
+            Parameters:
+                - limit - the number of tracks to return
+                - offset - the index of the first track to return
+                - market - an ISO 3166-1 alpha-2 country code
+
+        """
+        return self.sp.current_user_saved_tracks(limit=limit, offset=offset, market=market)
 
     def current_user_saved_tracks_add(
         self,
@@ -714,7 +761,7 @@ class SpotipyClient:
 
     def current_user_saved_episodes(
         self,
-        limit=20,
+        limit: int = 20,
         offset: int = 0,
         market: str | None = None,
     ):
@@ -740,7 +787,7 @@ class SpotipyClient:
 
     def current_user_saved_shows(
         self,
-        limit=20,
+        limit: int = 20,
         offset: int = 0,
         market: str | None = None,
     ):
@@ -778,7 +825,7 @@ class SpotipyClient:
 
     def current_user_followed_artists(
         self,
-        limit=20,
+        limit: int = 20,
         after=None,
     ):
         return self.sp.current_user_followed_artists()
@@ -797,7 +844,7 @@ class SpotipyClient:
 
     def current_user_top_artists(
         self,
-        limit=20,
+        limit: int = 20,
         offset: int = 0,
         time_range="medium_term",
     ):
@@ -805,7 +852,7 @@ class SpotipyClient:
 
     def current_user_top_tracks(
         self,
-        limit=20,
+        limit: int = 20,
         offset: int = 0,
         time_range="medium_term",
     ):
@@ -846,17 +893,17 @@ class SpotipyClient:
     def featured_playlists(
         self,
         locale=None,
-        country=None,
+        country: str | None = None,
         timestamp=None,
-        limit=20,
+        limit: int = 20,
         offset: int = 0,
     ):
         return self.sp.featured_playlists()
 
     def new_releases(
         self,
-        country=None,
-        limit=20,
+        country: str | None = None,
+        limit: int = 20,
         offset: int = 0,
     ):
         return self.sp.new_releases()
@@ -864,16 +911,16 @@ class SpotipyClient:
     def category(
         self,
         category_id,
-        country=None,
+        country: str | None = None,
         locale=None,
     ):
         return self.sp.category()
 
     def categories(
         self,
-        country=None,
+        country: str | None = None,
         locale=None,
-        limit=20,
+        limit: int = 20,
         offset: int = 0,
     ):
         return self.sp.categories()
@@ -881,8 +928,8 @@ class SpotipyClient:
     def category_playlists(
         self,
         category_id=None,
-        country=None,
-        limit=20,
+        country: str | None = None,
+        limit: int = 20,
         offset: int = 0,
     ):
         return self.sp.category_playlists()
@@ -923,15 +970,17 @@ class SpotipyClient:
     def current_playback(
         self,
         market: str | None = None,
-        additional_types=None,
-    ):
+        additional_types: Any | None = None,
+    ) -> PlaybackState:
         """ Get information about user's current playback.
+        
+        https://developer.spotify.com/documentation/web-api/reference/get-information-about-the-users-current-playback
 
             Parameters:
                 - market - an ISO 3166-1 alpha-2 country code.
                 - additional_types - `episode` to get podcast track information
         """
-        return self.sp.current_playback()
+        return PlaybackState(**self.sp.current_playback(market=market, additional_types=additional_types))
 
     def currently_playing(
         self,
@@ -962,38 +1011,77 @@ class SpotipyClient:
         """
         return self.sp.transfer_playback()
 
-    def start_playback(self, ) -> Any:
-        return self.sp.start_playback()
+    def start_playback(
+        self,
+        device_id: str | None = None,
+        context_uri: str | None = None,
+        uris: Iterable[str] | None = None,
+        offset: int | None = None,
+        position_ms: int | None = None,
+    ) -> Any:
+        """ Start or resume user's playback.
 
-    def pause_playback(self):
-        return self.sp.pause_playback()
+            Provide a `context_uri` to start playback of an album,
+            artist, or playlist.
+
+            Provide a `uris` list to start playback of one or more
+            tracks.
+
+            Provide `offset` as {"position": <int>} or {"uri": "<track uri>"}
+            to start playback at a particular offset.
+
+            Parameters:
+                - device_id - device target for playback
+                - context_uri - spotify context uri to play
+                - uris - spotify track uris
+                - offset - offset into context by index or track
+                - position_ms - (optional) indicates from what position to start playback.
+                                Must be a positive number. Passing in a position that is
+                                greater than the length of the track will cause the player to
+                                start playing the next song.
+        """
+        return self.sp.start_playback(
+            device_id=device_id,
+            context_uri=context_uri,
+            uris=uris,
+            offset=offset,
+            position_ms=position_ms,
+        )
+
+    def pause_playback(self, device_id: str | None = None):
+        """ Pause user's playback.
+
+            Parameters:
+                - device_id - device target for playback
+        """
+        return self.sp.pause_playback(device_id=device_id)
 
     def next_track(
         self,
-        device_id=None,
+        device_id: str | None = None,
     ):
         """ Skip user's playback to next track.
 
             Parameters:
                 - device_id - device target for playback
         """
-        return self.sp.next_track()
+        return self.sp.next_track(device_id=device_id)
 
     def previous_track(
         self,
-        device_id=None,
+        device_id: str | None = None,
     ):
         """ Skip user's playback to previous track.
 
             Parameters:
                 - device_id - device target for playback
         """
-        return self.sp.previous_track()
+        return self.sp.previous_track(device_id=device_id)
 
     def seek_track(
         self,
-        position_ms,
-        device_id=None,
+        position_ms: int,
+        device_id: str | None = None,
     ):
         """ Seek to position in current track.
 
@@ -1001,12 +1089,12 @@ class SpotipyClient:
                 - position_ms - position in milliseconds to seek to
                 - device_id - device target for playback
         """
-        return self.sp.seek_track()
+        return self.sp.seek_track(position_ms=position_ms, device_id=device_id)
 
     def repeat(
         self,
-        state,
-        device_id=None,
+        state: Literal['track'] | Literal['context'] | Literal['off'],
+        device_id: str | None = None,
     ):
         """ Set repeat mode for playback.
 
@@ -1014,12 +1102,12 @@ class SpotipyClient:
                 - state - `track`, `context`, or `off`
                 - device_id - device target for playback
         """
-        return self.sp.repeat()
+        return self.sp.repeat(state=state, device_id=device_id)
 
     def volume(
         self,
-        volume_percent,
-        device_id=None,
+        volume_percent: int,
+        device_id: str | None = None,
     ):
         """ Set playback volume.
 
@@ -1027,12 +1115,12 @@ class SpotipyClient:
                 - volume_percent - volume between 0 and 100
                 - device_id - device target for playback
         """
-        return self.sp.volume()
+        return self.sp.volume(volume_percent=volume_percent, device_id=device_id)
 
     def shuffle(
         self,
-        state,
-        device_id=None,
+        state: bool,
+        device_id: str | None = None,
     ):
         """ Toggle playback shuffling.
 
@@ -1040,7 +1128,7 @@ class SpotipyClient:
                 - state - true or false
                 - device_id - device target for playback
         """
-        return self.sp.shuffle()
+        return self.sp.shuffle(state=state, device_id=device_id)
 
     def queue(self, ):
         """ Gets the current user's queue """
@@ -1048,8 +1136,8 @@ class SpotipyClient:
 
     def add_to_queue(
         self,
-        uri,
-        device_id=None,
+        uri: str,
+        device_id: str | None = None,
     ):
         """ Adds a song to the end of a user's queue
 
@@ -1064,10 +1152,9 @@ class SpotipyClient:
                 If None, then the active device is used.
 
         """
+        return self.sp.add_to_queue(uri=uri, device_id=device_id)
 
-        return self.sp.add_to_queue()
-
-    def available_markets(self, ):
+    def available_markets(self):
         """ Get the list of markets where Spotify is available.
             Returns a list of the countries in which Spotify is available, identified by their
             ISO 3166-1 alpha-2 country code with additional country codes for special territories.
