@@ -1,9 +1,8 @@
 from typing import Any, Iterable, Literal
 import spotipy
 from spotipy.oauth2 import SpotifyClientCredentials
-from mytypes.response import PagedSimplifiedPlaylistObject
 
-from mytypes.types import AudioFeaturesObject, ImageObject, PlaybackState, PlaylistObject
+from mytypes.types import AudioFeaturesObject, ImageObject, PagedPlaylistTrackObject, PagedSimplifiedPlaylistObject, PlaybackState, PlaylistObject
 
 
 class SpotipyClient:
@@ -373,7 +372,7 @@ class SpotipyClient:
         offset: int = 0,
         market: str | None = None,
         additional_types: Iterable[str] = ("track", "episode"),
-    ):
+    ) -> PagedPlaylistTrackObject:
         """ Get full details of the tracks and episodes of a playlist.
         
         https://developer.spotify.com/documentation/web-api/reference/get-playlists-tracks
@@ -387,13 +386,15 @@ class SpotipyClient:
                 - additional_types - list of item types to return.
                                      valid types are: track and episode
         """
-        return self.sp.playlist_items(
-            playlist_id=playlist_id,
-            fields=fields,
-            limit=limit,
-            offset=offset,
-            market=market,
-            additional_types=additional_types,
+        return PagedPlaylistTrackObject(
+            **self.sp.playlist_items(
+                playlist_id=playlist_id,
+                fields=fields,
+                limit=limit,
+                offset=offset,
+                market=market,
+                additional_types=additional_types,
+            )
         )
 
     def playlist_cover_image(
