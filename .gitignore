@@ -9,11 +9,3 @@ __pycache__/
 
 # Spotipy creates cache files for auth tokens.
 .cache*
-
-
-### VisualStudioCode ###
-.vscode/**/*
-!.vscode/extensions.json
-!.vscode/extensions.recommended.json
-!.vscode/launch.json
-!.vscode/README.md
