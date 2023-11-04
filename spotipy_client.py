@@ -1022,7 +1022,7 @@ class SpotipyClient:
         self,
         market: str | None = None,
         additional_types: Any | None = None,
-    ) -> PlaybackState:
+    ) -> PlaybackState | None:
         """ Get information about user's current playback.
         
         https://developer.spotify.com/documentation/web-api/reference/get-information-about-the-users-current-playback
@@ -1031,7 +1031,8 @@ class SpotipyClient:
                 - market - an ISO 3166-1 alpha-2 country code.
                 - additional_types - `episode` to get podcast track information
         """
-        return PlaybackState(**self.sp.current_playback(market=market, additional_types=additional_types))
+        state = self.sp.current_playback(market=market, additional_types=additional_types)
+        return PlaybackState(**state) if state else state
 
     def currently_playing(
         self,
