@@ -1,6 +1,6 @@
+from utils import Scope, scope_builder
 from mytypes.types import AudioFeaturesObject, PlaylistObject
 from spotipy_client import SpotipyClient
-from utils import Scope, scope_builder
 
 
 def bpm_sorter(audio_feature: AudioFeaturesObject, threshold: int | None = None) -> float:
