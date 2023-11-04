@@ -1,16 +1,6 @@
 from mytypes.types import AudioFeaturesObject, PlaylistObject
 from spotipy_client import SpotipyClient
-
-url = "https://api.spotify.com"
-
-
-class Scope:
-    playlist_modify_public = 'playlist-modify-public'
-    playlist_modify_private = 'playlist-modify-private'
-
-
-def scope_builder(*scopes):
-    return ' '.join(scopes)
+from utils import Scope, scope_builder
 
 
 def bpm_sorter(audio_feature: AudioFeaturesObject, threshold: int | None = None) -> float:
@@ -26,9 +16,9 @@ def duplicate_playlist_sorted_by_bpm(
     name: str = '',
     threshold: int | None = None,
     dry_run: bool | int = False,
-):
+) -> None:
 
-    playlist: PlaylistObject = client.playlist(playlist_id=USING_PL)
+    playlist: PlaylistObject = client.playlist(playlist_id=playlist)
 
     songs_by_uris = {item.track.uri: item.track for item in playlist.tracks.items}
 
@@ -53,7 +43,7 @@ def duplicate_playlist_sorted_by_bpm(
 if __name__ == '__main__':
     scopes = scope_builder(Scope.playlist_modify_private, Scope.playlist_modify_public)
 
-    slow_wcs_playlist = 'https://open.spotify.com/playlist/0w0YxOMjvKUFS215VPIK6X?si=af0f0880708744c8'
+    slow_wcs_playlist, slow_t = 'https://open.spotify.com/playlist/0w0YxOMjvKUFS215VPIK6X?si=af0f0880708744c8', 130
     inputpl = 'https://open.spotify.com/playlist/5ISmAZvdFQob5nEZgH9ufI?si=4ee7af478b0b4a38'
     test = 'https://open.spotify.com/playlist/0zTGrbhMKJcOnCnAn55vGZ?si=34295a468ad74e65'
     fast_wcs = 'https://open.spotify.com/playlist/5lTsNph8TgIrTR7znoGfGk?si=49125ed39fe7483e'
@@ -61,9 +51,10 @@ if __name__ == '__main__':
 
     sp = SpotipyClient(username=emil, scope=scopes)
 
-    USING_PL = fast_wcs
+    USING_PL = slow_wcs_playlist
     THRESHOLD = None
-    THRESHOLD = 170
-    DRY_RUN = 0
+    # THRESHOLD = 170
+    THRESHOLD = slow_t
+    DRY_RUN = 1
 
     duplicate_playlist_sorted_by_bpm(client=sp, playlist=USING_PL, threshold=THRESHOLD, dry_run=DRY_RUN)
