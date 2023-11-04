@@ -1,8 +1,17 @@
 from typing import Any, Iterable, Literal
+
 import spotipy
 from spotipy.oauth2 import SpotifyClientCredentials
 
-from mytypes.types import AudioFeaturesObject, ImageObject, PagedPlaylistTrackObject, PagedSimplifiedPlaylistObject, PlaybackState, PlaylistObject
+from utils import scope_builder
+from mytypes.types import (
+    ImageObject,
+    PlaybackState,
+    PlaylistObject,
+    AudioFeaturesObject,
+    PagedPlaylistTrackObject,
+    PagedSimplifiedPlaylistObject,
+)
 
 
 class SpotipyClient:
@@ -13,9 +22,14 @@ class SpotipyClient:
     SPOTIPY_REDIRECT_URI=...
     """
 
-    def __init__(self, username: str | None = None, scope: str | None = None) -> None:
+    def __init__(
+        self,
+        username: str | None = None,
+        scope: str | list[str] | None = None,
+    ) -> None:
         self.username = username
         if username:
+            scope = scope_builder(scope)
             token = spotipy.util.prompt_for_user_token(username=username, scope=scope)
             self.sp = spotipy.Spotify(auth=token)
         else:
@@ -502,7 +516,7 @@ class SpotipyClient:
                 - playlist_id - the id of the playlist
                 - tracks - the list of track ids to add to the playlist
         """
-        return self.sp.user_playlist_replace_tracks()
+        return self.sp.user_playlist_replace_tracks(user=user, playlist_id=playlist_id, tracks=tracks)
 
     def playlist_change_details(
         self,

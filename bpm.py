@@ -41,7 +41,7 @@ def duplicate_playlist_sorted_by_bpm(
 
 
 if __name__ == '__main__':
-    scopes = scope_builder(Scope.playlist_modify_private, Scope.playlist_modify_public)
+    scopes = [Scope.playlist_modify_private, Scope.playlist_modify_public]
 
     slow_wcs_playlist, slow_t = 'https://open.spotify.com/playlist/0w0YxOMjvKUFS215VPIK6X?si=af0f0880708744c8', 130
     inputpl = 'https://open.spotify.com/playlist/5ISmAZvdFQob5nEZgH9ufI?si=4ee7af478b0b4a38'

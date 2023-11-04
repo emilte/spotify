@@ -15,10 +15,8 @@ def sleep_mode(
 
 
 if __name__ == '__main__':
-    scopes = scope_builder(Scope.user_modify_playback_state)
-
     emil = 'emiltelstad'
-    sp = SpotipyClient(username=emil, scope=scopes)
+    sp = SpotipyClient(username=emil, scope=Scope.user_modify_playback_state)
     SLEEP = 5
 
     sleep_mode(client=sp, seconds=SLEEP)

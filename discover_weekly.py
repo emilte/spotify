@@ -2,6 +2,7 @@ import os
 from datetime import datetime
 
 from spotipy_client import SpotipyClient
+from utils import scope_builder, Scope
 
 ENV_PREFIX = 'DW_'
 L = len(ENV_PREFIX)
@@ -24,7 +25,10 @@ if __name__ == '__main__':
 
     DWS = {k: v for k, v in os.environ.items() if k.startswith(ENV_PREFIX)}
     date = datetime.now().date().strftime(DATE_FMT)
-    sp = SpotipyClient(username=USER)
+    sp = SpotipyClient(
+        username=USER,
+        scope=[Scope.playlist_modify_private, Scope.playlist_modify_public],
+    )
 
     for env_name, pl_id in DWS.items():
 
