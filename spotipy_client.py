@@ -487,7 +487,7 @@ class SpotipyClient:
                 - tracks - a list of track URIs, URLs or IDs
                 - position - the position to add the tracks
         """
-        return self.sp.user_playlist_add_tracks()
+        return self.sp.user_playlist_add_tracks(user=user, playlist_id=playlist_id, tracks=tracks, position=position)
 
     def user_playlist_replace_tracks(
         self,
