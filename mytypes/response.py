@@ -7,6 +7,7 @@ from mytypes.types import (
     ArtistObject,
     SavedAlbumObject,
     PlaylistTrackObject,
+    AudioFeaturesObject,
     SimplifiedAlbumObject,
     SimplifiedPlaylistObject,
 )
@@ -117,6 +118,17 @@ class SetOfTracks:
 
     def __post_init__(self):
         self.tracks = [TrackObject(**data) for data in self.tracks]
+
+
+@dataclass
+class SetOfAudioFeaturesObject:
+    """
+    https://developer.spotify.com/documentation/web-api/reference/get-an-artists-top-tracks
+    """
+    audio_features: list[AudioFeaturesObject]
+
+    def __post_init__(self):
+        self.audio_features = [AudioFeaturesObject(**data) for data in self.audio_features]
 
 
 @dataclass

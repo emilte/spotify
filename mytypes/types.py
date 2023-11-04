@@ -14,6 +14,7 @@ class Type:
     artist = 'artist'
     episode = 'episode'
     playlist = 'playlist'
+    audio_features = 'audio_features'
 
 
 class AlbumType:
@@ -168,7 +169,6 @@ class TrackObject:
     available_markets: list[str]
     disc_number: int
     duration_ms: int
-    episode: bool  # undocumented?
     explicit: bool
     external_ids: ExternalIds
     external_urls: ExternalUrl
@@ -179,10 +179,11 @@ class TrackObject:
     name: str
     popularity: int
     preview_url: str
-    track: bool
     track_number: int
     type: Literal['track']
     uri: str
+    track: bool | None = None
+    episode: bool | None = None  # undocumented?
 
     def __post_init__(self):
         self.album = SimplifiedAlbumObject(**self.album)
@@ -334,6 +335,28 @@ class TrackObject2:
 
 
 @dataclass
+class AudioFeaturesObject:
+    acousticness: float
+    analysis_url: str
+    danceability: float
+    duration_ms: int
+    energy: float
+    id: str
+    instrumentalness: float
+    key: int
+    liveness: float
+    loudness: float
+    mode: int
+    speechiness: float
+    tempo: float
+    time_signature: int
+    track_href: str
+    type: Literal['audio_features']
+    uri: str
+    valence: float
+
+
+@dataclass
 class SimplifiedPlaylistObject:
     """
     https://developer.spotify.com/documentation/web-api/reference/search
@@ -356,19 +379,8 @@ class SimplifiedPlaylistObject:
 
     def __post_init__(self):
         self.external_urls = ExternalUrl(**self.external_urls)
-        print()
-        print()
-        print()
-        print(self)
-        print()
-        print(self.images)
-        print()
-        print()
-        print()
-        print()
         self.images = [ImageObject(**data) for data in self.images]
         self.owner = Owner(**self.owner)
-        print(1, self.tracks)
         self.tracks = PagedPlaylistTrackObject(**self.tracks)
         # self.tracks = TrackObject2(**self.tracks)
 
@@ -384,3 +396,84 @@ class PlaylistObject(SimplifiedPlaylistObject):
     def __post_init__(self):
         super().__post_init__()
         self.followers = Followers(**self.followers)
+
+
+@dataclass
+class DeviceObject:
+    """
+    https://developer.spotify.com/documentation/web-api/reference/get-information-about-the-users-current-playback
+    """
+    is_active: bool
+    is_private_session: bool
+    is_restricted: bool
+    name: str
+    type: str
+    supports_volume: bool
+    id: str | None = None
+    volume_percent: int | None = None
+
+
+@dataclass
+class ContextObject:
+    """
+    https://developer.spotify.com/documentation/web-api/reference/get-information-about-the-users-current-playback
+    """
+    type: str
+    href: str
+    external_urls: ExternalUrl
+    uri: str
+
+    def __post_init__(self):
+        self.external_urls = ExternalUrl(**self.external_urls)
+
+
+@dataclass
+class ActionsObject:
+    """
+    https://developer.spotify.com/documentation/web-api/reference/get-information-about-the-users-current-playback
+    """
+    interrupting_playback: bool | None = None
+    pausing: bool | None = None
+    resuming: bool | None = None
+    seeking: bool | None = None
+    skipping_next: bool | None = None
+    skipping_prev: bool | None = None
+    toggling_repeat_context: bool | None = None
+    toggling_shuffle: bool | None = None
+    toggling_repeat_track: bool | None = None
+    transferring_playback: bool | None = None
+
+
+@dataclass
+class ActionsObjectWrapper:
+    """
+    https://developer.spotify.com/documentation/web-api/reference/get-information-about-the-users-current-playback
+    """
+    disallows: ActionsObject | None = None
+
+    def __post_init__(self):
+        self.disallows = ActionsObject(**self.disallows)
+
+
+@dataclass
+class PlaybackState:
+    """
+    https://developer.spotify.com/documentation/web-api/reference/get-information-about-the-users-current-playback
+    """
+    device: DeviceObject
+    repeat_state: str
+    shuffle_state: bool
+    timestamp: int
+    is_playing: bool
+    currently_playing_type: str
+    actions: ActionsObjectWrapper
+    context: ContextObject | None = None
+    progress_ms: int | None = None
+    item: TrackObject | EpisodeObject | None = None
+
+    def __post_init__(self):
+        self.device = DeviceObject(**self.device)
+        self.context = ContextObject(**self.context) if self.context else self.context
+        if self.item:
+            self.item = TrackObject(**self.item) if self.item['type'] == 'track' else EpisodeObject(**self.item)
+        self.actions = ActionsObjectWrapper(**self.actions)
