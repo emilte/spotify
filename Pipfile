@@ -5,6 +5,8 @@ name = "pypi"
 
 [packages]
 spotipy = "*"
+yapf = "*"
+mypy = "*"
 
 [dev-packages]
 
