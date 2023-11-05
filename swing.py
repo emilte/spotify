@@ -79,7 +79,6 @@ if __name__ == '__main__':
         except SpotifyException:
             # Backoff max 20 sec to reduce too much polling.
             current_backoff_delay = min(current_backoff_delay + BACKOFF_INCREMENT_S, MAX_BACKOFF_DELAY_S)
-            print(current_backoff_delay)
             pass
         except ReadTimeout:
             # This could happen if slow internet connection etc.
