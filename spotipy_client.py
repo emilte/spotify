@@ -6,6 +6,7 @@ from spotipy.oauth2 import SpotifyClientCredentials
 
 from utils import scope_builder
 from mytypes.types import (
+    PagedSimplifiedEpisodeObject,
     Show,
     ImageObject,
     PlaybackState,
@@ -211,6 +212,8 @@ class SpotipyClient:
         market: str | None = None,
     ):
         """ returns a list of shows given the show IDs, URIs, or URLs
+        
+        https://developer.spotify.com/documentation/web-api/reference/get-multiple-shows
 
             Parameters:
                 - shows - a list of show IDs, URIs or URLs
@@ -229,8 +232,10 @@ class SpotipyClient:
         limit: int = 50,
         offset: int = 0,
         market: str | None = None,
-    ):
+    ) -> PagedSimplifiedEpisodeObject:
         """ Get Spotify catalog information about a show's episodes
+        
+        https://developer.spotify.com/documentation/web-api/reference/get-a-shows-episodes
 
             Parameters:
                 - show_id - the show ID, URI or URL
@@ -243,7 +248,14 @@ class SpotipyClient:
                            provided, the content is considered unavailable for the client.
         """
 
-        return self.sp.show_episodes(show_id=show_id, limit=limit, offset=offset, market=market)
+        return PagedSimplifiedEpisodeObject(
+            **self.sp.show_episodes(
+                show_id=show_id,
+                limit=limit,
+                offset=offset,
+                market=market,
+            )
+        )
 
     def episode(
         self,
