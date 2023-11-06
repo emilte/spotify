@@ -2,9 +2,9 @@ name: Duplicate Discover Weekly playlists
 
 on:
   workflow_dispatch:
-  schedule:
-    # https://crontab.guru/#0_21_*_*_MON
-    - cron: "0 21 * * MON" # "Every Monday evening."
+  # schedule:
+  # https://crontab.guru/#0_21_*_*_MON
+  # - cron: "0 21 * * MON" # "Every Monday evening."
 
 env:
   SPOTIPY_CLIENT_ID: ${{ secrets.SPOTIPY_CLIENT_ID }}
