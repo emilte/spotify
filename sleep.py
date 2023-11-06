@@ -1,22 +1,20 @@
 from time import sleep
 
-from utils import Scope, scope_builder
+from utils import Scope
 from spotipy_client import SpotipyClient
 
 url = "https://api.spotify.com"
 
+MIN = 60
+HOUR = 60 * MIN
 
-def sleep_mode(
-    client: SpotipyClient,
-    seconds: int,
-):
-    sleep(seconds)
-    client.pause_playback()
+SLEEP_S = 1.5 * HOUR
+# SLEEP_S = 2 * HOUR
 
+USER = 'emiltelstad'
 
 if __name__ == '__main__':
-    emil = 'emiltelstad'
-    sp = SpotipyClient(username=emil, scope=Scope.user_modify_playback_state)
-    SLEEP = 5
 
-    sleep_mode(client=sp, seconds=SLEEP)
+    sleep(SLEEP_S)
+    sp = SpotipyClient(username=USER, scope=Scope.user_modify_playback_state)
+    sp.pause_playback()
