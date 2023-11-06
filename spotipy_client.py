@@ -6,6 +6,7 @@ from spotipy.oauth2 import SpotifyClientCredentials
 
 from utils import scope_builder
 from mytypes.types import (
+    Show,
     ImageObject,
     PlaybackState,
     PlaylistObject,
@@ -189,8 +190,10 @@ class SpotipyClient:
         self,
         show_id: str,
         market: str | None = None,
-    ):
+    ) -> Show:
         """ returns a single show given the show's ID, URIs or URL
+        
+        https://developer.spotify.com/documentation/web-api/reference/get-a-show
 
             Parameters:
                 - show_id - the show ID, URI or URL
@@ -200,8 +203,7 @@ class SpotipyClient:
                            takes precedence. If neither market nor user country are
                            provided, the content is considered unavailable for the client.
         """
-
-        return self.sp.show(show_id=show_id, market=market)
+        return Show(**self.sp.show(show_id=show_id, market=market))
 
     def shows(
         self,
@@ -1045,7 +1047,7 @@ class SpotipyClient:
                 - market - an ISO 3166-1 alpha-2 country code.
                 - additional_types - `episode` to get podcast track information
         """
-        return self.sp.currently_playing()
+        return self.sp.currently_playing(market=market, additional_types=additional_types)
 
     def transfer_playback(
         self,
@@ -1061,7 +1063,7 @@ class SpotipyClient:
                 - force_play - true: after transfer, play. false:
                                keep current state.
         """
-        return self.sp.transfer_playback()
+        return self.sp.transfer_playback(device_id=device_id, force_play=force_play)
 
     def start_playback(
         self,
