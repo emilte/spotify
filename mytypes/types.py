@@ -38,16 +38,25 @@ class Genre:
 class Page:
     href: str
     limit: int
-    next: str | None
     offset: int
-    previous: str | None
     total: int
     items: Any
+    next: str | None = None
+    previous: str | None = None
 
 
 @dataclass
 class CopyrightObject:
     available_markets: list[str]
+
+
+@dataclass
+class CopyrightObject2:
+    """
+    https://developer.spotify.com/documentation/web-api/reference/get-a-show
+    """
+    text: str
+    type: Literal['C'] | Literal['P']
 
 
 @dataclass
@@ -69,7 +78,7 @@ class ExternalIds:
 
 
 @dataclass
-class ExternalUrl:
+class ExternalUrls:
     spotify: str
 
 
@@ -93,19 +102,19 @@ class ResumePoint:
 
 @dataclass
 class Person:
-    external_urls: ExternalUrl
+    external_urls: ExternalUrls
     href: str
     id: str
     type: Literal['user']
     uri: str
 
     def __post_init__(self):
-        self.external_urls = ExternalUrl(**self.external_urls)
+        self.external_urls = ExternalUrls(**self.external_urls)
 
 
 @dataclass
 class SimplifiedArtistObject:
-    external_urls: ExternalUrl
+    external_urls: ExternalUrls
     href: str
     id: str
     name: str
@@ -113,7 +122,7 @@ class SimplifiedArtistObject:
     uri: str
 
     def __post_init__(self):
-        self.external_urls = ExternalUrl(**self.external_urls)
+        self.external_urls = ExternalUrls(**self.external_urls)
 
 
 @dataclass
@@ -126,7 +135,7 @@ class ArtistObject(SimplifiedArtistObject):
 
     def __post_init__(self):
         super().__post_init__()
-        self.external_urls = ExternalUrl(**self.external_urls)
+        self.external_urls = ExternalUrls(**self.external_urls)
         self.followers = Followers(**self.followers)
         self.images = [ImageObject(**data) for data in self.images]
 
@@ -139,7 +148,7 @@ class SimplifiedAlbumObject:
     album_type: AlbumType
     total_tracks: int
     available_markets: list[str]
-    external_urls: ExternalUrl
+    external_urls: ExternalUrls
     href: str
     id: str
     images: list[ImageObject]
@@ -152,7 +161,7 @@ class SimplifiedAlbumObject:
     artists: list[SimplifiedArtistObject]
 
     def __post_init__(self):
-        self.external_urls = ExternalUrl(**self.external_urls)
+        self.external_urls = ExternalUrls(**self.external_urls)
         self.images = [ImageObject(**data) for data in self.images]
         # self.restrictions = Restrictions(**self.restrictions)
         self.artists = [SimplifiedArtistObject(**data) for data in self.artists]
@@ -171,7 +180,7 @@ class TrackObject:
     duration_ms: int
     explicit: bool
     external_ids: ExternalIds
-    external_urls: ExternalUrl
+    external_urls: ExternalUrls
     href: str
     id: str
     is_local: bool
@@ -189,7 +198,7 @@ class TrackObject:
         self.album = SimplifiedAlbumObject(**self.album)
         self.artists = [SimplifiedArtistObject(**data) for data in self.artists]
         self.external_ids = ExternalIds(**self.external_ids)
-        self.external_urls = ExternalUrl(**self.external_urls)
+        self.external_urls = ExternalUrls(**self.external_urls)
         # self.restrictions = Restrictions(**self.restrictions)
 
 
@@ -200,7 +209,7 @@ class Show:
     description: str
     html_description: str
     explicit: bool
-    external_urls: ExternalUrl
+    external_urls: ExternalUrls
     href: str
     id: str
     images: list[ImageObject]
@@ -215,18 +224,20 @@ class Show:
 
     def __post_init__(self):
         self.copyrights = [CopyrightObject(**data) for data in self.copyrights]
-        self.external_urls = ExternalUrl(**self.external_urls)
+        self.external_urls = ExternalUrls(**self.external_urls)
         self.images = [ImageObject(**data) for data in self.images]
 
 
 @dataclass
-class EpisodeObject:
-    audio_preview_url: str | None
+class SimplifiedEpisodeObject:
+    """
+    https://developer.spotify.com/documentation/web-api/reference/get-a-show
+    """
     description: str
     html_description: str
     duration_ms: int
     explicit: bool
-    external_urls: ExternalUrl
+    external_urls: ExternalUrls
     href: str
     id: str
     images: list[ImageObject]
@@ -237,21 +248,35 @@ class EpisodeObject:
     name: str
     release_date: str
     release_date_precision: str
-    resume_point: ResumePoint
     type: Literal['episode']
     uri: str
-    restrictions: Restrictions
+    audio_preview_url: str | None = None
+    resume_point: ResumePoint | None = None  # Only when user context and scope.
+    restrictions: Restrictions | None = None
 
     def __post_init__(self):
-        self.external_urls = ExternalUrl(**self.external_urls)
+        self.external_urls = ExternalUrls(**self.external_urls)
         self.images = [ImageObject(**data) for data in self.images]
-        self.resume_point = ResumePoint(**self.resume_point)
-        self.restrictions = Restrictions(**self.restrictions)
+        self.resume_point = ResumePoint(**self.resume_point) if self.resume_point else self.resume_point
+        self.restrictions = Restrictions(**self.restrictions) if self.restrictions else self.restrictions
+
+
+@dataclass
+class EpisodeObject(SimplifiedEpisodeObject):
+    ...
+
+
+@dataclass
+class PagedSimplifiedEpisodeObject(Page):
+    items: list[SimplifiedEpisodeObject]
+
+    def __post_init__(self):
+        self.items = [SimplifiedEpisodeObject(**data) for data in self.items]
 
 
 @dataclass
 class Owner:
-    external_urls: ExternalUrl
+    external_urls: ExternalUrls
     # followers: Followers
     href: str
     id: str
@@ -260,7 +285,7 @@ class Owner:
     display_name: str | None
 
     def __post_init__(self):
-        self.external_urls = ExternalUrl(**self.external_urls)
+        self.external_urls = ExternalUrls(**self.external_urls)
         # self.followers = Followers(**self.followers)
 
 
@@ -362,7 +387,7 @@ class SimplifiedPlaylistObject:
     """
     collaborative: bool
     description: str | None
-    external_urls: ExternalUrl
+    external_urls: ExternalUrls
     href: str
     id: str
     images: list[ImageObject]
@@ -376,7 +401,7 @@ class SimplifiedPlaylistObject:
     uri: str
 
     def __post_init__(self):
-        self.external_urls = ExternalUrl(**self.external_urls)
+        self.external_urls = ExternalUrls(**self.external_urls)
         self.images = [ImageObject(**data) for data in self.images]
         self.owner = Owner(**self.owner)
         self.tracks = PagedPlaylistTrackObject(**self.tracks)
@@ -418,11 +443,11 @@ class ContextObject:
     """
     type: str
     href: str
-    external_urls: ExternalUrl
+    external_urls: ExternalUrls
     uri: str
 
     def __post_init__(self):
-        self.external_urls = ExternalUrl(**self.external_urls)
+        self.external_urls = ExternalUrls(**self.external_urls)
 
 
 @dataclass
@@ -628,3 +653,34 @@ class SearchResponse:
         # self.shows = PagedSimplifiedShowObject(**self.shows)
         # self.episodes = PagedSimplifiedEpisodeObject(**self.episodes)
         # self.audiobooks = PagedSimplifiedAudiobookObject(**self.audiobooks)
+
+
+@dataclass
+class Show:
+    """
+    https://developer.spotify.com/documentation/web-api/reference/get-a-show
+    """
+    available_markets: list[str]
+    copyrights: list[CopyrightObject2]
+    description: str
+    html_description: str
+    explicit: bool
+    external_urls: ExternalUrls
+    href: str
+    id: str
+    images: list[ImageObject]
+    is_externally_hosted: bool
+    languages: list[str]
+    media_type: str
+    name: str
+    publisher: str
+    type: str
+    uri: str
+    total_episodes: int
+    episodes: PagedSimplifiedEpisodeObject
+
+    def __post_init__(self):
+        self.copyrights = [CopyrightObject2(**data) for data in self.copyrights]
+        self.external_urls = ExternalUrls(**self.external_urls)
+        self.images = [ImageObject(**data) for data in self.images]
+        self.episodes = PagedSimplifiedEpisodeObject(**self.episodes)
