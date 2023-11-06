@@ -232,6 +232,7 @@ class Show:
 class SimplifiedEpisodeObject:
     """
     https://developer.spotify.com/documentation/web-api/reference/get-a-show
+    https://developer.spotify.com/documentation/web-api/reference/get-a-shows-episodes
     """
     description: str
     html_description: str
@@ -268,6 +269,9 @@ class EpisodeObject(SimplifiedEpisodeObject):
 
 @dataclass
 class PagedSimplifiedEpisodeObject(Page):
+    """
+    https://developer.spotify.com/documentation/web-api/reference/get-a-shows-episodes
+    """
     items: list[SimplifiedEpisodeObject]
 
     def __post_init__(self):
