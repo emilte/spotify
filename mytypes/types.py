@@ -34,7 +34,7 @@ class Genre:
 ##############################################
 
 
-@dataclass
+@dataclass(kw_only=True)
 class Page:
     href: str
     limit: int
@@ -45,12 +45,12 @@ class Page:
     previous: str | None = None
 
 
-@dataclass
+@dataclass(kw_only=True)
 class CopyrightObject:
     available_markets: list[str]
 
 
-@dataclass
+@dataclass(kw_only=True)
 class CopyrightObject2:
     """
     https://developer.spotify.com/documentation/web-api/reference/get-a-show
@@ -59,48 +59,48 @@ class CopyrightObject2:
     type: Literal['C'] | Literal['P']
 
 
-@dataclass
+@dataclass(kw_only=True)
 class Restrictions:
     reason: str
 
 
-@dataclass
+@dataclass(kw_only=True)
 class Followers:
     href: str | None
     total: int
 
 
-@dataclass
+@dataclass(kw_only=True)
 class ExternalIds:
     isrc: str | None = None
     ean: str | None = None
     upc: str | None = None
 
 
-@dataclass
+@dataclass(kw_only=True)
 class ExternalUrls:
-    spotify: str
+    spotify: str = ''
 
 
-@dataclass
+@dataclass(kw_only=True)
 class ImageObject:
     height: int
     width: int
     url: str
 
 
-@dataclass
+@dataclass(kw_only=True)
 class Thumbnail:
     url: str
 
 
-@dataclass
+@dataclass(kw_only=True)
 class ResumePoint:
     fully_played: bool
     resume_position_ms: int
 
 
-@dataclass
+@dataclass(kw_only=True)
 class Person:
     external_urls: ExternalUrls
     href: str
@@ -108,11 +108,11 @@ class Person:
     type: Literal['user']
     uri: str
 
-    def __post_init__(self):
+    def __post_init__(self) -> None:
         self.external_urls = ExternalUrls(**self.external_urls)
 
 
-@dataclass
+@dataclass(kw_only=True)
 class SimplifiedArtistObject:
     external_urls: ExternalUrls
     href: str
@@ -121,11 +121,11 @@ class SimplifiedArtistObject:
     type: Literal['artist']
     uri: str
 
-    def __post_init__(self):
+    def __post_init__(self) -> None:
         self.external_urls = ExternalUrls(**self.external_urls)
 
 
-@dataclass
+@dataclass(kw_only=True)
 class ArtistObject(SimplifiedArtistObject):
     """https://developer.spotify.com/documentation/web-api/reference/get-an-artist"""
     followers: Followers
@@ -133,22 +133,22 @@ class ArtistObject(SimplifiedArtistObject):
     images: list[ImageObject]
     popularity: int
 
-    def __post_init__(self):
+    def __post_init__(self) -> None:
         super().__post_init__()
         self.external_urls = ExternalUrls(**self.external_urls)
         self.followers = Followers(**self.followers)
         self.images = [ImageObject(**data) for data in self.images]
 
 
-@dataclass
+@dataclass(kw_only=True)
 class SimplifiedAlbumObject:
     """
     https://developer.spotify.com/documentation/web-api/reference/get-an-artists-albums
     """
     album_type: AlbumType
-    total_tracks: int
     available_markets: list[str]
     external_urls: ExternalUrls
+    total_tracks: int | None = None
     href: str
     id: str
     images: list[ImageObject]
@@ -160,14 +160,14 @@ class SimplifiedAlbumObject:
     uri: str
     artists: list[SimplifiedArtistObject]
 
-    def __post_init__(self):
+    def __post_init__(self) -> None:
         self.external_urls = ExternalUrls(**self.external_urls)
         self.images = [ImageObject(**data) for data in self.images]
         # self.restrictions = Restrictions(**self.restrictions)
         self.artists = [SimplifiedArtistObject(**data) for data in self.artists]
 
 
-@dataclass
+@dataclass(kw_only=True)
 class TrackObject:
     """
     https://developer.spotify.com/documentation/web-api/reference/get-an-artists-top-tracks
@@ -194,7 +194,7 @@ class TrackObject:
     track: bool | None = None
     episode: bool | None = None  # undocumented?
 
-    def __post_init__(self):
+    def __post_init__(self) -> None:
         self.album = SimplifiedAlbumObject(**self.album)
         self.artists = [SimplifiedArtistObject(**data) for data in self.artists]
         self.external_ids = ExternalIds(**self.external_ids)
@@ -202,7 +202,7 @@ class TrackObject:
         # self.restrictions = Restrictions(**self.restrictions)
 
 
-@dataclass
+@dataclass(kw_only=True)
 class Show:
     available_markets: list[str]
     copyrights: list[CopyrightObject]
@@ -222,13 +222,13 @@ class Show:
     uri: str
     total_episodes: int
 
-    def __post_init__(self):
+    def __post_init__(self) -> None:
         self.copyrights = [CopyrightObject(**data) for data in self.copyrights]
         self.external_urls = ExternalUrls(**self.external_urls)
         self.images = [ImageObject(**data) for data in self.images]
 
 
-@dataclass
+@dataclass(kw_only=True)
 class SimplifiedEpisodeObject:
     """
     https://developer.spotify.com/documentation/web-api/reference/get-a-show
@@ -255,30 +255,30 @@ class SimplifiedEpisodeObject:
     resume_point: ResumePoint | None = None  # Only when user context and scope.
     restrictions: Restrictions | None = None
 
-    def __post_init__(self):
+    def __post_init__(self) -> None:
         self.external_urls = ExternalUrls(**self.external_urls)
         self.images = [ImageObject(**data) for data in self.images]
         self.resume_point = ResumePoint(**self.resume_point) if self.resume_point else self.resume_point
         self.restrictions = Restrictions(**self.restrictions) if self.restrictions else self.restrictions
 
 
-@dataclass
+@dataclass(kw_only=True)
 class EpisodeObject(SimplifiedEpisodeObject):
     ...
 
 
-@dataclass
+@dataclass(kw_only=True)
 class PagedSimplifiedEpisodeObject(Page):
     """
     https://developer.spotify.com/documentation/web-api/reference/get-a-shows-episodes
     """
     items: list[SimplifiedEpisodeObject]
 
-    def __post_init__(self):
+    def __post_init__(self) -> None:
         self.items = [SimplifiedEpisodeObject(**data) for data in self.items]
 
 
-@dataclass
+@dataclass(kw_only=True)
 class Owner:
     external_urls: ExternalUrls
     # followers: Followers
@@ -288,12 +288,12 @@ class Owner:
     uri: str
     display_name: str | None
 
-    def __post_init__(self):
+    def __post_init__(self) -> None:
         self.external_urls = ExternalUrls(**self.external_urls)
         # self.followers = Followers(**self.followers)
 
 
-@dataclass
+@dataclass(kw_only=True)
 class PlaylistTrackObject:
     added_at: str
     added_by: Person
@@ -302,7 +302,7 @@ class PlaylistTrackObject:
     track: TrackObject | EpisodeObject
     video_thumbnail: Thumbnail  # undocumented?
 
-    def __post_init__(self):
+    def __post_init__(self) -> None:
         self.added_by = Person(**self.added_by)
         if self.track['type'] == 'track':
             self.track = TrackObject(**self.track)
@@ -311,7 +311,7 @@ class PlaylistTrackObject:
         self.video_thumbnail = Thumbnail(**self.video_thumbnail)
 
 
-@dataclass
+@dataclass(kw_only=True)
 class PagedPlaylistTrackObject(Page):
     """
     https://developer.spotify.com/documentation/web-api/reference/get-playlists-tracks
@@ -319,11 +319,11 @@ class PagedPlaylistTrackObject(Page):
     """
     items: list[PlaylistTrackObject]
 
-    def __post_init__(self):
+    def __post_init__(self) -> None:
         self.items = [PlaylistTrackObject(**data) for data in self.items]
 
 
-@dataclass
+@dataclass(kw_only=True)
 class AlbumObject(SimplifiedAlbumObject):
     """
     https://developer.spotify.com/documentation/web-api/reference/get-an-album
@@ -335,14 +335,14 @@ class AlbumObject(SimplifiedAlbumObject):
     label: str
     popularity: int
 
-    def __post_init__(self):
+    def __post_init__(self) -> None:
         super().__post_init__()
         self.tracks = PagedPlaylistTrackObject(**self.tracks)
         self.copyrights = [CopyrightObject(**data) for data in self.copyrights]
         self.external_ids = ExternalIds(**self.external_ids)
 
 
-@dataclass
+@dataclass(kw_only=True)
 class SavedAlbumObject(AlbumObject):
     """
     https://developer.spotify.com/documentation/web-api/reference/get-users-saved-albums
@@ -350,18 +350,18 @@ class SavedAlbumObject(AlbumObject):
     added_at: str
     album: AlbumObject
 
-    def __post_init__(self):
+    def __post_init__(self) -> None:
         super().__post_init__()
         self.album = PagedPlaylistTrackObject(**self.album)
 
 
-@dataclass
+@dataclass(kw_only=True)
 class TrackObject2:
     href: str
     total: int
 
 
-@dataclass
+@dataclass(kw_only=True)
 class AudioFeaturesObject:
     acousticness: float
     analysis_url: str
@@ -383,7 +383,7 @@ class AudioFeaturesObject:
     valence: float
 
 
-@dataclass
+@dataclass(kw_only=True)
 class SimplifiedPlaylistObject:
     """
     https://developer.spotify.com/documentation/web-api/reference/search
@@ -404,7 +404,7 @@ class SimplifiedPlaylistObject:
     type: Literal['playlist']
     uri: str
 
-    def __post_init__(self):
+    def __post_init__(self) -> None:
         self.external_urls = ExternalUrls(**self.external_urls)
         self.images = [ImageObject(**data) for data in self.images]
         self.owner = Owner(**self.owner)
@@ -412,7 +412,7 @@ class SimplifiedPlaylistObject:
         # self.tracks = TrackObject2(**self.tracks)
 
 
-@dataclass
+@dataclass(kw_only=True)
 class PlaylistObject(SimplifiedPlaylistObject):
     """
     https://developer.spotify.com/documentation/web-api/reference/get-playlist
@@ -420,12 +420,12 @@ class PlaylistObject(SimplifiedPlaylistObject):
     followers: Followers
     primary_color: str | None  # undocumented?
 
-    def __post_init__(self):
+    def __post_init__(self) -> None:
         super().__post_init__()
         self.followers = Followers(**self.followers)
 
 
-@dataclass
+@dataclass(kw_only=True)
 class DeviceObject:
     """
     https://developer.spotify.com/documentation/web-api/reference/get-information-about-the-users-current-playback
@@ -440,7 +440,7 @@ class DeviceObject:
     volume_percent: int | None = None
 
 
-@dataclass
+@dataclass(kw_only=True)
 class ContextObject:
     """
     https://developer.spotify.com/documentation/web-api/reference/get-information-about-the-users-current-playback
@@ -450,11 +450,11 @@ class ContextObject:
     external_urls: ExternalUrls
     uri: str
 
-    def __post_init__(self):
+    def __post_init__(self) -> None:
         self.external_urls = ExternalUrls(**self.external_urls)
 
 
-@dataclass
+@dataclass(kw_only=True)
 class ActionsObject:
     """
     https://developer.spotify.com/documentation/web-api/reference/get-information-about-the-users-current-playback
@@ -471,18 +471,18 @@ class ActionsObject:
     transferring_playback: bool | None = None
 
 
-@dataclass
+@dataclass(kw_only=True)
 class ActionsObjectWrapper:
     """
     https://developer.spotify.com/documentation/web-api/reference/get-information-about-the-users-current-playback
     """
     disallows: ActionsObject | None = None
 
-    def __post_init__(self):
+    def __post_init__(self) -> None:
         self.disallows = ActionsObject(**self.disallows)
 
 
-@dataclass
+@dataclass(kw_only=True)
 class PlaybackState:
     """
     https://developer.spotify.com/documentation/web-api/reference/get-information-about-the-users-current-playback
@@ -498,7 +498,7 @@ class PlaybackState:
     progress_ms: int | None = None
     item: TrackObject | EpisodeObject | None = None
 
-    def __post_init__(self):
+    def __post_init__(self) -> None:
         self.device = DeviceObject(**self.device)
         self.context = ContextObject(**self.context) if self.context else self.context
         if self.item:
@@ -506,99 +506,99 @@ class PlaybackState:
         self.actions = ActionsObjectWrapper(**self.actions)
 
 
-@dataclass
+@dataclass(kw_only=True)
 class PagedArtistObject(Page):
     """
     https://developer.spotify.com/documentation/web-api/reference/search
     """
     items: list[ArtistObject]
 
-    def __post_init__(self):
+    def __post_init__(self) -> None:
         super().__post_init__()
         self.items = [ArtistObject(**data) for data in self.items]
 
 
-@dataclass
+@dataclass(kw_only=True)
 class SetOfAlbumObjects:
     """
     https://developer.spotify.com/documentation/web-api/reference/get-multiple-albums
     """
     albums: list[AlbumObject]
 
-    def __post_init__(self):
+    def __post_init__(self) -> None:
         self.albums = [AlbumObject(**data) for data in self.albums]
 
 
-@dataclass
+@dataclass(kw_only=True)
 class PagedSavedAlbumObject(Page):
     """
     https://developer.spotify.com/documentation/web-api/reference/get-users-saved-albums
     """
     items: list[SavedAlbumObject]
 
-    def __post_init__(self):
+    def __post_init__(self) -> None:
         super().__post_init__()
         self.items = [SavedAlbumObject(**data) for data in self.items]
 
 
-@dataclass
+@dataclass(kw_only=True)
 class SetOfArtistObjects:
     """
     https://developer.spotify.com/documentation/web-api/reference/get-multiple-artists
     """
     artists: list[ArtistObject]
 
-    def __post_init__(self):
+    def __post_init__(self) -> None:
         self.artists = [ArtistObject(**data) for data in self.artists]
 
 
-@dataclass
+@dataclass(kw_only=True)
 class PagedSimplifiedAlbumObject(Page):
     """
     https://developer.spotify.com/documentation/web-api/reference/get-an-artists-albums
     """
     items: list[SimplifiedAlbumObject]
 
-    def __post_init__(self):
+    def __post_init__(self) -> None:
         super().__post_init__()
         self.items = [SimplifiedAlbumObject(**data) for data in self.items]
 
 
-@dataclass
+@dataclass(kw_only=True)
 class SetOfTracks:
     """
     https://developer.spotify.com/documentation/web-api/reference/get-an-artists-top-tracks
     """
     tracks: list[TrackObject]
 
-    def __post_init__(self):
+    def __post_init__(self) -> None:
         self.tracks = [TrackObject(**data) for data in self.tracks]
 
 
-@dataclass
+@dataclass(kw_only=True)
 class SetOfAudioFeaturesObject:
     """
     https://developer.spotify.com/documentation/web-api/reference/get-an-artists-top-tracks
     """
     audio_features: list[AudioFeaturesObject]
 
-    def __post_init__(self):
+    def __post_init__(self) -> None:
         self.audio_features = [AudioFeaturesObject(**data) for data in self.audio_features]
 
 
-@dataclass
+@dataclass(kw_only=True)
 class PagedTrackObject(Page):
     """
     https://developer.spotify.com/documentation/web-api/reference/search
     """
     items: list[TrackObject]
 
-    def __post_init__(self):
+    def __post_init__(self) -> None:
         super().__post_init__()
         self.items = [TrackObject(**data) for data in self.items]
 
 
-@dataclass
+@dataclass(kw_only=True)
 class PagedSimplifiedPlaylistObject(Page):
     """
     https://developer.spotify.com/documentation/web-api/reference/get-list-users-playlists
@@ -606,12 +606,12 @@ class PagedSimplifiedPlaylistObject(Page):
     """
     items: list[SimplifiedPlaylistObject]
 
-    def __post_init__(self):
+    def __post_init__(self) -> None:
         super().__post_init__()
         self.items = [SimplifiedPlaylistObject(**data) for data in self.items]
 
 
-@dataclass
+@dataclass(kw_only=True)
 class PagedSetSimplifiedPlaylistObject:
     """
     https://developer.spotify.com/documentation/web-api/reference/get-featured-playlists
@@ -620,22 +620,22 @@ class PagedSetSimplifiedPlaylistObject:
     message: str
     playlists: list[PagedSimplifiedPlaylistObject]
 
-    def __post_init__(self):
+    def __post_init__(self) -> None:
         self.playlists = [PagedSimplifiedPlaylistObject(**data) for data in self.playlists]
 
 
-# @dataclass
+# @dataclass(kw_only=True)
 # class PagedSimplifiedShowObject(Page):
 #     """
 #     https://developer.spotify.com/documentation/web-api/reference/search
 #     """
 #     items: list[SimplifiedShowObject]
 
-#     def __post_init__(self):
+#     def __post_init__(self)->None:
 #         self.items = [SimplifiedShowObject(**data) for data in self.items]
 
 
-@dataclass
+@dataclass(kw_only=True)
 class SearchResponse:
     """
     https://developer.spotify.com/documentation/web-api/reference/search
@@ -649,7 +649,7 @@ class SearchResponse:
     # episodes: PagedSimplifiedEpisodeObject
     # audiobooks: PagedSimplifiedAudiobookObject
 
-    def __post_init__(self):
+    def __post_init__(self) -> None:
         self.tracks = PagedTrackObject(**self.tracks)
         self.artists = PagedArtistObject(**self.artists)
         self.albums = PagedSimplifiedAlbumObject(**self.albums)
@@ -659,7 +659,7 @@ class SearchResponse:
         # self.audiobooks = PagedSimplifiedAudiobookObject(**self.audiobooks)
 
 
-@dataclass
+@dataclass(kw_only=True)
 class Show:
     """
     https://developer.spotify.com/documentation/web-api/reference/get-a-show
@@ -683,7 +683,7 @@ class Show:
     total_episodes: int
     episodes: PagedSimplifiedEpisodeObject
 
-    def __post_init__(self):
+    def __post_init__(self) -> None:
         self.copyrights = [CopyrightObject2(**data) for data in self.copyrights]
         self.external_urls = ExternalUrls(**self.external_urls)
         self.images = [ImageObject(**data) for data in self.images]
