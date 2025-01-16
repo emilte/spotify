@@ -38,7 +38,11 @@ def duplicate_playlist_sorted_by_bpm(
     if not dry_run:
         new_pl: PlaylistObject = client.user_playlist_create(user=user, name=plname)
         client.playlist_add_items(playlist_id=new_pl.uri, items=sorted_audio_features_uris)
-    print(f'Created playlist: {plname}')
+
+    if dry_run:
+        print(f'Completd dry run: {plname}')
+    else:
+        print(f'Created playlist: {plname}')
 
 
 if __name__ == '__main__':
@@ -56,6 +60,6 @@ if __name__ == '__main__':
     THRESHOLD = None
     # THRESHOLD = 170
     THRESHOLD = slow_t
-    DRY_RUN = 1
+    DRY_RUN = 0
 
     duplicate_playlist_sorted_by_bpm(client=sp, playlist=USING_PL, threshold=THRESHOLD, dry_run=DRY_RUN)
